@@ -4,7 +4,7 @@
 ;; Author: Johnson Denen <johnson.denen@gmail.com>
 ;; Version: 0.9.0
 ;; Homepage: https://github.com/jdenen/mastodon.el
-;; Package-Requires: ((emacs "24.4"))
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This file is not part of GNU Emacs.
 
