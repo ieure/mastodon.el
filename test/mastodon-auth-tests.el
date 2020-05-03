@@ -64,3 +64,14 @@
       (mock (mastodon-auth--get-token) => '(:access_token "foobaz"))
       (should (string= (mastodon-auth--access-token) "foobaz"))
       (should (equal mastodon-auth--token-alist '(("https://instance.url" . "foobaz")))))))
+
+(ert-deftest handle-token-response-good ()
+  (should (string= "foo" (mastodon-auth--handle-token-response '(:access_token "foo" :token_type "Bearer" :scope "read write follow" :created_at 0)))))
+
+(ert-deftest handle-token-response-unknown ()
+  :expected-result :failed
+  (mastodon-auth--handle-token-response '(:herp "derp")))
+
+(ert-deftest handle-token-response-failure ()
+  :expected-result :failed
+  (mastodon-auth--handle-token-response '(:error "invalid_grant" :error_description "The provided authorization grant is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.")))
