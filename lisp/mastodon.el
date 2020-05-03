@@ -124,7 +124,7 @@ Use. e.g. \"%c\" for your locale's date and time format."
   "Face used for user display names.")
 
 (defface mastodon-boosted-face
-  '((t :inherit highlight :weight bold))
+  '((t :inherit success :weight bold))
   "Face to indicate that a toot is boosted.")
 
 (defface mastodon-boost-fave-face
@@ -132,8 +132,12 @@ Use. e.g. \"%c\" for your locale's date and time format."
   "Face to indicate that you have boosted or favourited a toot.")
 
 (defface mastodon-cw-face
-  '((t :inherit success))
+  '((t (:background "black" :foreground "orange red" :box (:line-width 2 :color "red" :style released-button) :weight bold)))
   "Face used for content warning.")
+
+(defface mastodon-separator-face
+  '((t (:background "light gray" :height 25)))
+  "Face used to separate toots.")
 
 ;;;###autoload
 (defun mastodon ()

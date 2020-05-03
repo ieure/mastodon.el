@@ -209,7 +209,7 @@ If search returns nil, execute REFRESH function.
 Optionally start from POS."
   (let* ((npos (funcall find-pos
                         (or pos (point))
-                        'byline
+                        'toot-id
                         (current-buffer))))
     (if npos
         (if (not (get-text-property npos 'toot-id))
@@ -266,7 +266,7 @@ Optionally start from POS."
   (let ((reblog (cdr (assoc 'reblog toot))))
     (when reblog
       (concat
-       " "
+       "\n  "
        (propertize "Boosted" 'face 'mastodon-boosted-face)
        " "
        (mastodon-tl--byline-author reblog)))))
@@ -355,11 +355,10 @@ it is `mastodon-tl--byline-boosted'"
         (faved (equal 't (mastodon-tl--field 'favourited toot)))
         (boosted (equal 't (mastodon-tl--field 'reblogged toot))))
     (concat
-     (propertize "\n | " 'face 'default)
      (propertize
       (concat (when boosted
                 (format "(%s) "
-                        (propertize "B" 'face 'mastodon-boost-fave-face)))
+                        (propertize "B" 'face 'mastodon-boosted-face)))
               (when faved
                 (format "(%s) "
                         (propertize "F" 'face 'mastodon-boost-fave-face)))
@@ -373,11 +372,16 @@ it is `mastodon-tl--byline-boosted'"
                'timestamp parsed-time
                'display (if mastodon-tl--enable-relative-timestamps
                             (mastodon-tl--relative-time-description parsed-time)
-                          parsed-time))
-              (propertize "\n  ------------" 'face 'default))
+                          parsed-time)))
       'favourited-p faved
       'boosted-p    boosted
       'byline       t))))
+
+(defun mastodon-tl--separator ()
+  "Generate separator for TL elements."
+  (propertize "\n"
+              'face 'mastodon-separator-face
+              'begin-toot t))
 
 (defun mastodon-tl--render-text (string toot)
   "Returns a propertized text giving the rendering of the given HTML string STRING.
@@ -590,19 +594,17 @@ message is a link which unhides/hides the main body."
                   (mastodon-tl--clean-tabs-and-nl
                    (mastodon-tl--render-text spoiler toot))
                   'default))
-         (message (concat "\n"
-                          " ---------------\n"
-                          " " (mastodon-tl--make-link "Content Warning"
-                                                      'content-warning)
-                          "\n"
-                          " ---------------\n"))
+         (message (mastodon-tl--make-link "Content Warning"
+                                          'content-warning))
          (cw (mastodon-tl--set-face message 'mastodon-cw-face)))
     (concat
      string
+     "\n"
      cw
-     (propertize (mastodon-tl--content toot)
+     (propertize (concat "\n" (mastodon-tl--content toot))
                  'invisible t
-                 'mastodon-content-warning-body t))))
+                 'mastodon-content-warning-body t)
+     "\n")))
 
 (defun mastodon-tl--media (toot)
   "Retrieve a media attachment link for TOOT if one exists."
@@ -625,9 +627,11 @@ message is a link which unhides/hides the main body."
 (defun mastodon-tl--content (toot)
   "Retrieve text content from TOOT."
   (let ((content (mastodon-tl--field 'content toot)))
-    (concat
+    (propertize
+     (concat
      (mastodon-tl--render-text content toot)
-     (mastodon-tl--media toot))))
+     (mastodon-tl--media toot))
+     'content t)))
 
 (defun mastodon-tl--insert-status (toot body author-byline action-byline)
   "Display the content and byline of a timeline element.
@@ -642,15 +646,20 @@ it is `mastodon-tl--byline-boosted'"
     (insert
      (propertize
       (concat body
-              (mastodon-tl--byline toot author-byline action-byline))
+              "\n"
+              " " (mastodon-tl--byline toot author-byline action-byline)
+              "\n\n"
+              (mastodon-tl--separator)
+              "\n"
+              )
       'toot-id      (cdr (assoc 'id toot))
       'base-toot-id (mastodon-tl--toot-id toot)
       'toot-json    toot)
-     "\n\n")
+     )
     (when mastodon-tl--display-media-p
       (mastodon-media--inline-images start-pos (point)))))
 
-(defun mastodon-tl--toot(toot)
+(defun mastodon-tl--toot (toot)
   "Formats TOOT and insertes it into the buffer."
   (mastodon-tl--insert-status
    toot
